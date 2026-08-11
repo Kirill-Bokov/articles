@@ -1,4 +1,4 @@
-const sequelize = require('./sequelize');
+const sequelize = require('../src/sequelize');
 const Article = require('./Article');
 const Comment = require('./Comment');
 

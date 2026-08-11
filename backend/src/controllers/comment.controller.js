@@ -1,9 +1,41 @@
 const { Article, Comment } = require('../../models');
+const { ValidationError } = require('sequelize');
+
+function validateId(id) {
+  return /^\d+$/.test(id) && Number(id) > 0;
+}
+
+function validateCommentData(data, partial = false) {
+  const errors = {};
+
+  if (!partial || data.content !== undefined) {
+    if (typeof data.content !== 'string' || !data.content.trim()) {
+      errors.content = 'Content must be a non-empty string';
+    }
+  }
+
+  return errors;
+}
 
 async function createComment(req, res) {
   try {
     const { id } = req.params;
     const { content } = req.body;
+
+    if (!validateId(id)) {
+      return res.status(400).json({
+        message: 'Invalid article ID'
+      });
+    }
+
+    const errors = validateCommentData({ content });
+
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({
+        message: 'Validation failed',
+        errors
+      });
+    }
 
     const article = await Article.findByPk(id);
 
@@ -14,15 +46,25 @@ async function createComment(req, res) {
     }
 
     const comment = await Comment.create({
-      content,
+      content: content.trim(),
       articleId: id
     });
 
-    res.status(201).json(comment);
+    return res.status(201).json(comment);
   } catch (error) {
     console.error(error);
 
-    res.status(500).json({
+    if (error instanceof ValidationError) {
+      return res.status(400).json({
+        message: 'Validation failed',
+        errors: error.errors.map(({ path, message }) => ({
+          field: path,
+          message
+        }))
+      });
+    }
+
+    return res.status(500).json({
       message: 'Internal server error'
     });
   }
@@ -31,6 +73,18 @@ async function createComment(req, res) {
 async function getComment(req, res) {
   try {
     const { id, commentId } = req.params;
+
+    if (!validateId(id)) {
+      return res.status(400).json({
+        message: 'Invalid article ID'
+      });
+    }
+
+    if (!validateId(commentId)) {
+      return res.status(400).json({
+        message: 'Invalid comment ID'
+      });
+    }
 
     const comment = await Comment.findOne({
       where: {
@@ -45,11 +99,11 @@ async function getComment(req, res) {
       });
     }
 
-    res.status(200).json(comment);
+    return res.status(200).json(comment);
   } catch (error) {
     console.error(error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: 'Internal server error'
     });
   }
@@ -58,6 +112,12 @@ async function getComment(req, res) {
 async function getComments(req, res) {
   try {
     const { id } = req.params;
+
+    if (!validateId(id)) {
+      return res.status(400).json({
+        message: 'Invalid article ID'
+      });
+    }
 
     const article = await Article.findByPk(id);
 
@@ -70,14 +130,15 @@ async function getComments(req, res) {
     const comments = await Comment.findAll({
       where: {
         articleId: id
-      }
+      },
+      order: [['createdAt', 'ASC']]
     });
 
-    res.status(200).json(comments);
+    return res.status(200).json(comments);
   } catch (error) {
     console.error(error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: 'Internal server error'
     });
   }
@@ -87,6 +148,27 @@ async function updateComment(req, res) {
   try {
     const { id, commentId } = req.params;
     const { content } = req.body;
+
+    if (!validateId(id)) {
+      return res.status(400).json({
+        message: 'Invalid article ID'
+      });
+    }
+
+    if (!validateId(commentId)) {
+      return res.status(400).json({
+        message: 'Invalid comment ID'
+      });
+    }
+
+    const errors = validateCommentData({ content }, true);
+
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({
+        message: 'Validation failed',
+        errors
+      });
+    }
 
     const comment = await Comment.findOne({
       where: {
@@ -102,14 +184,26 @@ async function updateComment(req, res) {
     }
 
     if (content !== undefined) {
-      await comment.update({ content });
+      await comment.update({
+        content: content.trim()
+      });
     }
 
-    res.status(200).json(comment);
+    return res.status(200).json(comment);
   } catch (error) {
     console.error(error);
 
-    res.status(500).json({
+    if (error instanceof ValidationError) {
+      return res.status(400).json({
+        message: 'Validation failed',
+        errors: error.errors.map(({ path, message }) => ({
+          field: path,
+          message
+        }))
+      });
+    }
+
+    return res.status(500).json({
       message: 'Internal server error'
     });
   }
@@ -118,6 +212,18 @@ async function updateComment(req, res) {
 async function deleteComment(req, res) {
   try {
     const { id, commentId } = req.params;
+
+    if (!validateId(id)) {
+      return res.status(400).json({
+        message: 'Invalid article ID'
+      });
+    }
+
+    if (!validateId(commentId)) {
+      return res.status(400).json({
+        message: 'Invalid comment ID'
+      });
+    }
 
     const comment = await Comment.findOne({
       where: {
@@ -134,11 +240,11 @@ async function deleteComment(req, res) {
 
     await comment.destroy();
 
-    res.status(204).send();
+    return res.status(204).send();
   } catch (error) {
     console.error(error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: 'Internal server error'
     });
   }

@@ -3,7 +3,7 @@ const { sequelize } = require('../models');
 
 const articleRoutes = require('./routes/article.routes');
 const commentRoutes = require('./routes/comment.routes');
-//const analyticRoutes = require('./routes/analytic.routes');
+const analyticRoutes = require('./routes/analytic.routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,7 +12,7 @@ app.use(express.json());
 
 app.use(articleRoutes);
 app.use(commentRoutes);
-//app.use(analyticRoutes);
+app.use(analyticRoutes);
 
 async function startServer() {
   try {
