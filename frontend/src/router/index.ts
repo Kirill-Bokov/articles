@@ -4,6 +4,7 @@ import ArticlesView from '@/views/ArticlesView.vue'
 import ArticleView from '@/views/ArticleView.vue'
 import ArticleCreateView from '@/views/ArticleCreateView.vue'
 import ArticleEditView from '@/views/ArticleEditView.vue'
+import AnalyticsView from '@/views/AnalyticsView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -32,6 +33,11 @@ const router = createRouter({
       path: '/articles/:id/edit',
       name: 'article-edit',
       component: ArticleEditView,
+    },
+    {
+      path: '/analytic/comments',
+      name: 'comments-analytics',
+      component: AnalyticsView,
     },
   ],
 })
