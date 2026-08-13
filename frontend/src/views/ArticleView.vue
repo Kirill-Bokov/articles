@@ -13,15 +13,15 @@ const router = useRouter();
 const store = useStore();
 
 const article = computed<Article | null>(() => {
-  return store.getters['articles/currentArticle'];
+    return store.getters['articles/currentArticle'];
 });
 
 const loading = computed<boolean>(() => {
-  return store.getters['articles/loading'];
+    return store.getters['articles/loading'];
 });
 
 const error = computed<string | null>(() => {
-  return store.getters['articles/error'];
+    return store.getters['articles/error'];
 });
 
 const showCommentForm = ref(false);
@@ -29,138 +29,147 @@ const deleting = ref(false);
 const deleteError = ref<string | null>(null);
 
 const articleId = computed(() => {
-  return Number(route.params.id);
+    return Number(route.params.id);
 });
 
 onMounted(() => {
-  if (!Number.isInteger(articleId.value) || articleId.value <= 0) {
-    router.push({
-      name: 'articles'
-    });
+    if (!Number.isInteger(articleId.value) || articleId.value <= 0) {
+        router.push({
+            name: 'articles'
+        });
 
-    return;
-  }
+        return;
+    }
 
-  store.dispatch(
-    'articles/fetchArticle',
-    articleId.value
-  );
+    store.dispatch(
+        'articles/fetchArticle',
+        articleId.value
+    );
 });
 
 const deleteArticle = async () => {
-  if (!Number.isInteger(articleId.value) || articleId.value <= 0) {
-    return;
-  }
+    if (!Number.isInteger(articleId.value) || articleId.value <= 0) {
+        return;
+    }
 
-  if (!confirm('Удалить статью?')) {
-    return;
-  }
+    if (!confirm('Удалить статью?')) {
+        return;
+    }
 
-  deleting.value = true;
-  deleteError.value = null;
+    deleting.value = true;
+    deleteError.value = null;
 
-  try {
-    await store.dispatch(
-      'articles/deleteArticle',
-      articleId.value
-    );
+    try {
+        await store.dispatch(
+            'articles/deleteArticle',
+            articleId.value
+        );
 
-    await router.push({
-      name: 'articles'
-    });
-  } catch {
-    deleteError.value = 'Не удалось удалить статью';
-  } finally {
-    deleting.value = false;
-  }
+        await router.push({
+            name: 'articles'
+        });
+    } catch {
+        deleteError.value = 'Не удалось удалить статью';
+    } finally {
+        deleting.value = false;
+    }
 };
 </script>
 
 <template>
-  <main>
-    <nav>
-      <RouterLink :to="{ name: 'articles' }">
-        Назад к статьям
-      </RouterLink>
+    <v-container>
+        <v-row class="mb-4">
+            <v-col>
+                <v-btn variant="text" :to="{ name: 'articles' }">
+                    Назад к статьям
+                </v-btn>
 
-      <RouterLink :to="{ name: 'comments-analytics' }">
-        Аналитика комментариев
-      </RouterLink>
-    </nav>
+                <v-btn variant="text" :to="{ name: 'comments-analytics' }">
+                    Аналитика комментариев
+                </v-btn>
+            </v-col>
+        </v-row>
 
-    <p v-if="loading">
-      Загрузка...
-    </p>
+        <v-progress-linear v-if="loading" indeterminate />
 
-    <p v-else-if="error">
-      {{ error }}
-    </p>
+        <v-alert v-else-if="error" type="error" class="mb-4">
+            {{ error }}
+        </v-alert>
 
-    <template v-else-if="article">
-      <article>
-        <h1>{{ article.title }}</h1>
+        <template v-else-if="article">
+            <v-card class="mb-6">
+                <v-card-title class="text-h5">
+                    {{ article.title }}
+                </v-card-title>
 
-        <p>{{ article.content }}</p>
+                <v-card-text>
+                    <p class="mb-4">
+                        {{ article.content }}
+                    </p>
 
-        <dl>
-          <dt>ID</dt>
-          <dd>{{ article.id }}</dd>
+                    <v-list density="compact">
+                        <v-list-item title="ID">
+                            <template #append>
+                                {{ article.id }}
+                            </template>
+                        </v-list-item>
 
-          <dt>Дата создания</dt>
-          <dd>{{ article.createdAt }}</dd>
+                        <v-list-item title="Дата создания">
+                            <template #append>
+                                {{ article.createdAt }}
+                            </template>
+                        </v-list-item>
 
-          <dt>Дата модификации</dt>
-          <dd>{{ article.updatedAt }}</dd>
-        </dl>
+                        <v-list-item title="Дата модификации">
+                            <template #append>
+                                {{ article.updatedAt }}
+                            </template>
+                        </v-list-item>
+                    </v-list>
+                </v-card-text>
 
-        <div>
-          <RouterLink
-            :to="{
-              name: 'article-edit',
-              params: {
-                id: article.id
-              }
-            }"
-          >
-            Редактировать
-          </RouterLink>
+                <v-card-actions>
+                    <v-btn color="primary" :to="{
+                        name: 'article-edit',
+                        params: {
+                            id: article.id
+                        }
+                    }">
+                        Редактировать
+                    </v-btn>
 
-          <button
-            type="button"
-            :disabled="deleting"
-            @click="deleteArticle"
-          >
-            {{ deleting ? 'Удаление...' : 'Удалить статью' }}
-          </button>
-        </div>
+                    <v-btn color="error" :loading="deleting" @click="deleteArticle">
+                        Удалить статью
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
 
-        <p v-if="deleteError">
-          {{ deleteError }}
-        </p>
-      </article>
+            <v-alert v-if="deleteError" type="error" class="mb-6">
+                {{ deleteError }}
+            </v-alert>
 
-      <CommentsList :article-id="article.id" />
+            <CommentsList :article-id="article.id" />
 
-      <section>
-        <button
-          v-if="!showCommentForm"
-          type="button"
-          @click="showCommentForm = true"
-        >
-          Добавить комментарий
-        </button>
+            <v-card class="mt-6">
+                <v-card-title>
+                    Добавление комментария
+                </v-card-title>
 
-        <CommentForm
-          v-else
-          :article-id="article.id"
-          @saved="showCommentForm = false"
-          @cancelled="showCommentForm = false"
-        />
-      </section>
-    </template>
+                <v-card-actions v-if="!showCommentForm">
+                    <v-btn color="primary" @click="showCommentForm = true">
+                        Добавить комментарий
+                    </v-btn>
+                </v-card-actions>
 
-    <p v-else>
-      Статья не найдена.
-    </p>
-  </main>
+                <v-card-text v-else>
+                    <CommentForm :article-id="article.id" @saved="showCommentForm = false"
+                        @cancelled="showCommentForm = false" />
+                </v-card-text>
+            </v-card>
+        </template>
+
+        <v-alert v-else type="warning">
+            Статья не найдена.
+        </v-alert>
+    </v-container>
 </template>

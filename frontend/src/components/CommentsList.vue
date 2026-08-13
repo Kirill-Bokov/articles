@@ -28,27 +28,25 @@ onMounted(() => {
 </script>
 
 <template>
-  <section>
-    <h2>Комментарии</h2>
+  <v-card>
+    <v-card-title>
+      Комментарии
+    </v-card-title>
 
-    <p v-if="loading">
-      Загрузка комментариев...
-    </p>
+    <v-card-text>
+      <v-progress-linear v-if="loading" indeterminate />
 
-    <p v-else-if="error">
-      {{ error }}
-    </p>
+      <v-alert v-else-if="error" type="error">
+        {{ error }}
+      </v-alert>
 
-    <p v-else-if="comments.length === 0">
-      Комментариев пока нет.
-    </p>
+      <v-alert v-else-if="comments.length === 0" type="info">
+        Комментариев пока нет.
+      </v-alert>
 
-    <div v-else>
-      <CommentItem
-        v-for="comment in comments"
-        :key="comment.id"
-        :comment="comment"
-      />
-    </div>
-  </section>
+      <v-list v-else lines="three">
+        <CommentItem v-for="comment in comments" :key="comment.id" :comment="comment" />
+      </v-list>
+    </v-card-text>
+  </v-card>
 </template>

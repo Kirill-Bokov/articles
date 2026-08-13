@@ -24,32 +24,34 @@ onMounted(() => {
 </script>
 
 <template>
-  <main>
-    <h1>Статьи</h1>
+  <v-container>
+    <div class="d-flex align-center justify-space-between mb-6">
+      <h1 class="text-h4">
+        Статьи
+      </h1>
 
-    <div>
-      <RouterLink :to="{ name: 'article-create' }">
-        Создать статью
-      </RouterLink>
+      <div class="d-flex ga-2">
+        <v-btn color="primary" :to="{ name: 'article-create' }">
+          Создать статью
+        </v-btn>
 
-      <RouterLink :to="{ name: 'comments-analytics' }">
-        Аналитика комментариев
-      </RouterLink>
+        <v-btn variant="outlined" :to="{ name: 'comments-analytics' }">
+          Аналитика
+        </v-btn>
+      </div>
     </div>
 
-    <p v-if="loading">
-      Загрузка...
-    </p>
+    <v-progress-linear v-if="loading" indeterminate class="mb-4" />
 
-    <p v-else-if="error">
+    <v-alert v-else-if="error" type="error" class="mb-4">
       {{ error }}
-    </p>
+    </v-alert>
 
-    <p v-else-if="articles.length === 0">
+    <v-alert v-else-if="articles.length === 0" type="info">
       Статей пока нет.
-    </p>
+    </v-alert>
 
-    <table v-else>
+    <v-table v-else hover>
       <thead>
         <tr>
           <th>ID</th>
@@ -62,28 +64,37 @@ onMounted(() => {
       </thead>
 
       <tbody>
-        <tr
-          v-for="article in articles"
-          :key="article.id"
-        >
+        <tr v-for="article in articles" :key="article.id">
           <td>{{ article.id }}</td>
-          <td>{{ article.title }}</td>
-          <td>{{ article.content }}</td>
-          <td>{{ article.createdAt }}</td>
-          <td>{{ article.updatedAt }}</td>
 
           <td>
-            <RouterLink
-              :to="{
-                name: 'article',
-                params: { id: article.id }
-              }"
-            >
+            {{ article.title }}
+          </td>
+
+          <td>
+            {{ article.content }}
+          </td>
+
+          <td>
+            {{ article.createdAt }}
+          </td>
+
+          <td>
+            {{ article.updatedAt }}
+          </td>
+
+          <td>
+            <v-btn size="small" variant="text" color="primary" :to="{
+              name: 'article',
+              params: {
+                id: article.id
+              }
+            }">
               Открыть
-            </RouterLink>
+            </v-btn>
           </td>
         </tr>
       </tbody>
-    </table>
-  </main>
+    </v-table>
+  </v-container>
 </template>

@@ -5,13 +5,13 @@ import { useStore } from 'vuex';
 import type { Comment } from '@/types/comment';
 
 const props = defineProps<{
-  articleId: number;
-  comment?: Comment | null;
+    articleId: number;
+    comment?: Comment | null;
 }>();
 
 const emit = defineEmits<{
-  saved: [];
-  cancelled: [];
+    saved: [];
+    cancelled: [];
 }>();
 
 const store = useStore();
@@ -23,70 +23,61 @@ const error = ref<string | null>(null);
 const isEditMode = computed(() => Boolean(props.comment));
 
 const submit = async () => {
-  if (!content.value.trim()) {
-    error.value = 'Текст комментария обязателен';
-    return;
-  }
-
-  submitting.value = true;
-  error.value = null;
-
-  try {
-    if (isEditMode.value && props.comment) {
-      await store.dispatch('comments/updateComment', {
-        articleId: props.articleId,
-        commentId: props.comment.id,
-        data: {
-          content: content.value.trim()
-        }
-      });
-    } else {
-      await store.dispatch('comments/createComment', {
-        articleId: props.articleId,
-        data: {
-          content: content.value.trim()
-        }
-      });
+    if (!content.value.trim()) {
+        error.value = 'Текст комментария обязателен';
+        return;
     }
 
-    emit('saved');
-  } catch {
-    error.value = 'Не удалось сохранить комментарий';
-  } finally {
-    submitting.value = false;
-  }
+    submitting.value = true;
+    error.value = null;
+
+    try {
+        if (isEditMode.value && props.comment) {
+            await store.dispatch('comments/updateComment', {
+                articleId: props.articleId,
+                commentId: props.comment.id,
+                data: {
+                    content: content.value.trim()
+                }
+            });
+        } else {
+            await store.dispatch('comments/createComment', {
+                articleId: props.articleId,
+                data: {
+                    content: content.value.trim()
+                }
+            });
+        }
+
+        emit('saved');
+    } catch {
+        error.value = 'Не удалось сохранить комментарий';
+    } finally {
+        submitting.value = false;
+    }
 };
 </script>
 
 <template>
-  <form @submit.prevent="submit">
-    <label for="comment-content">
-      {{ isEditMode ? 'Редактирование комментария' : 'Новый комментарий' }}
-    </label>
+    <v-form @submit.prevent="submit">
+        <div class="text-subtitle-1 mb-2">
+            {{ isEditMode ? 'Редактирование комментария' : 'Новый комментарий' }}
+        </div>
 
-    <textarea
-      id="comment-content"
-      v-model="content"
-      rows="5"
-    />
+        <v-textarea v-model="content" label="Текст комментария" variant="outlined" rows="5" auto-grow class="mb-2" />
 
-    <p v-if="error">
-      {{ error }}
-    </p>
+        <v-alert v-if="error" type="error" density="compact" class="mb-4">
+            {{ error }}
+        </v-alert>
 
-    <button
-      type="submit"
-      :disabled="submitting"
-    >
-      {{ submitting ? 'Сохранение...' : 'Сохранить' }}
-    </button>
+        <div class="d-flex ga-2">
+            <v-btn type="submit" color="primary" :loading="submitting">
+                {{ submitting ? 'Сохранение...' : 'Сохранить' }}
+            </v-btn>
 
-    <button
-      v-if="isEditMode"
-      type="button"
-      @click="emit('cancelled')"
-    >
-      Отмена
-    </button>
-  </form>
+            <v-btn v-if="isEditMode" type="button" variant="outlined" @click="emit('cancelled')">
+                Отмена
+            </v-btn>
+        </div>
+    </v-form>
 </template>

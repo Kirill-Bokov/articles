@@ -7,7 +7,7 @@ import CommentForm from './CommentForm.vue';
 import type { Comment } from '@/types/comment';
 
 const props = defineProps<{
-  comment: Comment;
+    comment: Comment;
 }>();
 
 const store = useStore();
@@ -17,71 +17,58 @@ const deleting = ref(false);
 const error = ref<string | null>(null);
 
 const deleteComment = async () => {
-  if (!confirm('Удалить комментарий?')) {
-    return;
-  }
+    if (!confirm('Удалить комментарий?')) {
+        return;
+    }
 
-  deleting.value = true;
-  error.value = null;
+    deleting.value = true;
+    error.value = null;
 
-  try {
-    await store.dispatch('comments/deleteComment', {
-      articleId: props.comment.articleId,
-      commentId: props.comment.id
-    });
-  } catch {
-    error.value = 'Не удалось удалить комментарий';
-  } finally {
-    deleting.value = false;
-  }
+    try {
+        await store.dispatch('comments/deleteComment', {
+            articleId: props.comment.articleId,
+            commentId: props.comment.id
+        });
+    } catch {
+        error.value = 'Не удалось удалить комментарий';
+    } finally {
+        deleting.value = false;
+    }
 };
 </script>
 
 <template>
-  <article>
-    <CommentForm
-      v-if="editing"
-      :article-id="comment.articleId"
-      :comment="comment"
-      @saved="editing = false"
-      @cancelled="editing = false"
-    />
+    <v-list-item v-if="editing">
+        <CommentForm :article-id="comment.articleId" :comment="comment" @saved="editing = false"
+            @cancelled="editing = false" />
+    </v-list-item>
 
-    <template v-else>
-      <p>{{ comment.content }}</p>
+    <v-list-item v-else>
+        <v-list-item-title>
+            {{ comment.content }}
+        </v-list-item-title>
 
-      <dl>
-        <dt>ID</dt>
-        <dd>{{ comment.id }}</dd>
+        <v-list-item-subtitle class="mt-2">
+            <div>ID: {{ comment.id }}</div>
+            <div>ID статьи: {{ comment.articleId }}</div>
+            <div>Создан: {{ comment.createdAt }}</div>
+            <div>Изменён: {{ comment.updatedAt }}</div>
+        </v-list-item-subtitle>
 
-        <dt>ID статьи</dt>
-        <dd>{{ comment.articleId }}</dd>
+        <template #append>
+            <div class="d-flex ga-2">
+                <v-btn size="small" variant="outlined" @click="editing = true">
+                    Редактировать
+                </v-btn>
 
-        <dt>Создан</dt>
-        <dd>{{ comment.createdAt }}</dd>
+                <v-btn size="small" color="error" variant="outlined" :loading="deleting" @click="deleteComment">
+                    Удалить
+                </v-btn>
+            </div>
+        </template>
 
-        <dt>Изменён</dt>
-        <dd>{{ comment.updatedAt }}</dd>
-      </dl>
-
-      <button
-        type="button"
-        @click="editing = true"
-      >
-        Редактировать
-      </button>
-
-      <button
-        type="button"
-        :disabled="deleting"
-        @click="deleteComment"
-      >
-        {{ deleting ? 'Удаление...' : 'Удалить' }}
-      </button>
-
-      <p v-if="error">
-        {{ error }}
-      </p>
-    </template>
-  </article>
+        <v-alert v-if="error" type="error" density="compact" class="mt-3">
+            {{ error }}
+        </v-alert>
+    </v-list-item>
 </template>
