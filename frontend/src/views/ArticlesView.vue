@@ -1,51 +1,61 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted } from 'vue';
+import { useStore } from 'vuex';
 
-const articles = ref([
-  {
-    id: 1,
-    title: 'Изучаем Vue'
-  },
-  {
-    id: 2,
-    title: 'Изучаем TypeScript'
-  }
-]);
+import type { Article } from '@/types/article';
 
-const search = ref('');
-
-const filteredArticles = computed(() => {
-  return articles.value.filter(article =>
-    article.title
-      .toLowerCase()
-      .includes(search.value.toLowerCase())
-  );
-});
-
-import { useStore } from 'vuex/types/index.js';
 const store = useStore();
 
-const count = computed(() => store.state.count);
+const articles = computed<Article[]>(() => {
+  return store.getters['articles/articles'];
+});
+
+const loading = computed<boolean>(() => {
+  return store.getters['articles/loading'];
+});
+
+const error = computed<string | null>(() => {
+  return store.getters['articles/error'];
+});
+
+onMounted(() => {
+  store.dispatch('articles/fetchArticles');
+});
 </script>
 
 <template>
-  <h1>Список статей</h1>
-     <p>{{ count }}</p>
-  <input
-    v-model="search"
-    placeholder="Поиск"
-  >
+  <main>
+    <h1>Статьи</h1>
 
-  <p>
-    Найдено: {{ filteredArticles.length }}
-  </p>
+    <p v-if="loading">
+      Загрузка...
+    </p>
 
-  <ul>
-    <li
-      v-for="article in filteredArticles"
-      :key="article.id"
-    >
-      {{ article.title }}
-    </li>
-  </ul>
+    <p v-else-if="error">
+      {{ error }}
+    </p>
+
+    <p v-else-if="articles.length === 0">
+      Статей пока нет.
+    </p>
+
+    <ul v-else>
+      <li
+        v-for="article in articles"
+        :key="article.id"
+      >
+        <h2>{{ article.title }}</h2>
+
+        <p>{{ article.content }}</p>
+
+        <p>
+          Создана: {{ article.createdAt }}
+        </p>
+
+        <p>
+          Изменена: {{ article.updatedAt }}
+        </p>
+      </li>
+    </ul>
+  </main>
 </template>

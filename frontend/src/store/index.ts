@@ -1,15 +1,11 @@
-import { createStore } from "vuex/types/index.js";
+import { createStore } from 'vuex';
 
-const store = createStore({
-  state: {
-    count: 0
-  },
-  mutations: {
-    increment(state) {
-      state.count++;
-    }
+import articles from './modules/articles';
+import comments from './modules/comments';
+
+export default createStore({
+  modules: {
+    articles,
+    comments
   }
-
 });
-
-export default store;
