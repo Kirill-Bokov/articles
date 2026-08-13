@@ -1,19 +1,19 @@
-import type { Module } from 'vuex';
+import type { Module } from 'vuex'
 
-import type { Article } from '@/types/article';
+import type { Article } from '@/types/article'
 import {
   getArticles,
   getArticle,
   createArticle,
   updateArticle,
-  deleteArticle
-} from '@/api/articles';
+  deleteArticle,
+} from '@/api/articles'
 
 interface ArticlesState {
-  articles: Article[];
-  currentArticle: Article | null;
-  loading: boolean;
-  error: string | null;
+  articles: Article[]
+  currentArticle: Article | null
+  loading: boolean
+  error: string | null
 }
 
 const articles: Module<ArticlesState, unknown> = {
@@ -23,127 +23,124 @@ const articles: Module<ArticlesState, unknown> = {
     articles: [],
     currentArticle: null,
     loading: false,
-    error: null
+    error: null,
   },
 
   getters: {
     articles: (state) => state.articles,
     currentArticle: (state) => state.currentArticle,
     loading: (state) => state.loading,
-    error: (state) => state.error
+    error: (state) => state.error,
   },
 
   mutations: {
     setArticles(state, articles: Article[]) {
-      state.articles = articles;
+      state.articles = articles
     },
 
     setCurrentArticle(state, article: Article | null) {
-      state.currentArticle = article;
+      state.currentArticle = article
     },
 
     setLoading(state, loading: boolean) {
-      state.loading = loading;
+      state.loading = loading
     },
 
     setError(state, error: string | null) {
-      state.error = error;
+      state.error = error
     },
 
     addArticle(state, article: Article) {
-      state.articles.push(article);
+      state.articles.push(article)
     },
 
     replaceArticle(state, article: Article) {
-      const index = state.articles.findIndex(
-        item => item.id === article.id
-      );
+      const index = state.articles.findIndex((item) => item.id === article.id)
 
       if (index !== -1) {
-        state.articles[index] = article;
+        state.articles[index] = article
       }
     },
 
     removeArticle(state, id: number) {
-      state.articles = state.articles.filter(
-        article => article.id !== id
-      );
-    }
+      state.articles = state.articles.filter((article) => article.id !== id)
+    },
   },
 
   actions: {
     async fetchArticles({ commit }) {
-      commit('setLoading', true);
-      commit('setError', null);
+      commit('setLoading', true)
+      commit('setError', null)
 
       try {
-        const articles = await getArticles();
+        const articles = await getArticles()
 
-        commit('setArticles', articles);
+        commit('setArticles', articles)
       } catch (error) {
-        commit('setError', 'Не удалось загрузить статьи');
-        throw error;
+        commit('setError', 'Не удалось загрузить статьи')
+        throw error
       } finally {
-        commit('setLoading', false);
+        commit('setLoading', false)
       }
     },
 
     async fetchArticle({ commit }, id: number) {
-      commit('setLoading', true);
-      commit('setError', null);
+      commit('setCurrentArticle', null)
+      commit('setLoading', true)
+      commit('setError', null)
 
       try {
-        const article = await getArticle(id);
+        const article = await getArticle(id)
 
-        commit('setCurrentArticle', article);
+        commit('setCurrentArticle', article)
 
-        return article;
+        return article
       } catch (error) {
-        commit('setError', 'Не удалось загрузить статью');
-        throw error;
+        commit('setError', 'Не удалось загрузить статью')
+        throw error
       } finally {
-        commit('setLoading', false);
+        commit('setLoading', false)
       }
     },
 
-    async createArticle({ commit }, data: {
-      title: string;
-      content: string;
-    }) {
-      const article = await createArticle(data);
+    async createArticle(
+      { commit },
+      data: {
+        title: string
+        content: string
+      },
+    ) {
+      const article = await createArticle(data)
 
-      commit('addArticle', article);
+      commit('addArticle', article)
 
-      return article;
+      return article
     },
 
     async updateArticle(
       { commit },
       payload: {
-        id: number;
+        id: number
         data: {
-          title?: string;
-          content?: string;
-        };
-      }
+          title?: string
+          content?: string
+        }
+      },
     ) {
-      const article = await updateArticle(
-        payload.id,
-        payload.data
-      );
+      const article = await updateArticle(payload.id, payload.data)
 
-      commit('replaceArticle', article);
-      commit('setCurrentArticle', article);
+      commit('replaceArticle', article)
+      commit('setCurrentArticle', article)
 
-      return article;
+      return article
     },
 
     async deleteArticle({ commit }, id: number) {
-      await deleteArticle(id);
+      await deleteArticle(id)
 
-      commit('removeArticle', id);
-    }
-  }
-};
+      commit('removeArticle', id)
+    },
+  },
+}
 
-export default articles;
+export default articles
